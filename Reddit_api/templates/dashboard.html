@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RedditSense - Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f6f8;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 260px;
+            background: #1a1a1b;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 30px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: #FF4500;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .logo-text {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .logo-text .reddit {
+            color: #FF4500;
+        }
+
+        .logo-subtitle {
+            font-size: 0.85em;
+            opacity: 0.6;
+            margin-left: 52px;
+        }
+
+        .nav-menu {
+            padding: 30px 0;
+        }
+
+        .nav-label {
+            padding: 0 20px;
+            font-size: 0.75em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.5;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .nav-item {
+            padding: 14px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-left: 3px solid transparent;
+            margin-bottom: 5px;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.05);
+            border-left-color: #FF4500;
+        }
+
+        .nav-item.active {
+            background: rgba(255,69,0,0.15);
+            border-left-color: #FF4500;
+            color: #FF4500;
+        }
+
+        .nav-icon {
+            font-size: 1.3em;
+            width: 28px;
+            text-align: center;
+        }
+
+        .nav-text {
+            font-size: 1em;
+            font-weight: 500;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: white;
+            padding: 25px 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #FF4500;
+        }
+
+        .welcome-section h1 {
+            color: #1a1a1b;
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .welcome-section p {
+            color: #7c7c7c;
+            font-size: 0.95em;
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #FF4500, #FF6A33);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .content-area {
+            padding: 40px;
+        }
+
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 4px solid #FF4500;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(255,69,0,0.15);
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #7c7c7c;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #FF4500;
+        }
+
+        .stat-change {
+            font-size: 0.85em;
+            color: #00D26A;
+            margin-top: 8px;
+        }
+
+        /* Charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .chart-card h3 {
+            margin-bottom: 20px;
+            color: #1a1a1b;
+            font-size: 1.3em;
+            border-bottom: 2px solid #FF4500;
+            padding-bottom: 10px;
+        }
+
+        /* Search Section */
+        .search-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #FF4500;
+        }
+
+        .search-box select {
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+            cursor: pointer;
+            min-width: 180px;
+        }
+
+        .search-box button {
+            padding: 15px 40px;
+            background: #FF4500;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-box button:hover {
+            background: #E03D00;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255,69,0,0.3);
+        }
+
+        .quick-filters {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .filter-chip {
+            padding: 10px 18px;
+            background: #f5f6f8;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .filter-chip:hover {
+            background: #FF4500;
+            color: white;
+            border-color: #FF4500;
+        }
+
+        /* Results */
+        .search-results {
+            margin-top: 30px;
+        }
+
+        .result-header {
+            background: #f5f6f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #FF4500;
+        }
+
+        .result-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 4px solid #FF4500;
+            transition: all 0.3s ease;
+        }
+
+        .result-card:hover {
+            box-shadow: 0 4px 15px rgba(255,69,0,0.15);
+            transform: translateX(5px);
+        }
+
+        .result-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #1a1a1b;
+            margin-bottom: 12px;
+        }
+
+        .result-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            color: #7c7c7c;
+        }
+
+        .result-nlp {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .nlp-badge {
+            padding: 12px;
+            background: #f5f6f8;
+            border-radius: 8px;
+            border-left: 3px solid #FF4500;
+        }
+
+        .nlp-badge .label {
+            font-size: 0.8em;
+            color: #7c7c7c;
+            margin-bottom: 5px;
+        }
+
+        .nlp-badge .value {
+            font-weight: bold;
+            color: #1a1a1b;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .badge.positive { background: #d4edda; color: #155724; }
+        .badge.negative { background: #f8d7da; color: #721c24; }
+        .badge.neutral { background: #d1ecf1; color: #0c5460; }
+        .badge.spam { background: #f8d7da; color: #721c24; }
+
+        .keywords-list {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .keyword-tag {
+            padding: 6px 14px;
+            background: #FFE5D9;
+            color: #FF4500;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        /* History */
+        .history-list {
+            list-style: none;
+        }
+
+        .history-item {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 4px solid #FF4500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .history-item:hover {
+            box-shadow: 0 4px 15px rgba(255,69,0,0.15);
+            transform: translateX(5px);
+        }
+
+        .history-query {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #1a1a1b;
+        }
+
+        .history-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 0.9em;
+            color: #7c7c7c;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #7c7c7c;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #FF4500;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #7c7c7c;
+        }
+
+        .empty-state .icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">📊</div>
+                <div class="logo-text">
+                    <span class="reddit">Reddit</span><span>Sense</span>
+                </div>
+            </div>
+            <div class="logo-subtitle">NLP Analytics</div>
+        </div>
+
+        <nav class="nav-menu">
+            <div class="nav-label">MAIN MENU</div>
+            <div class="nav-item active" onclick="showPage('overview')">
+                <span class="nav-icon">📈</span>
+                <span class="nav-text">Overview</span>
+            </div>
+            <div class="nav-item" onclick="showPage('search')">
+                <span class="nav-icon">🔍</span>
+                <span class="nav-text">Search & Analyze</span>
+            </div>
+            <div class="nav-item" onclick="showPage('history')">
+                <span class="nav-icon">🕐</span>
+                <span class="nav-text">History</span>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="welcome-section">
+                <h1>Welcome Back! 👋</h1>
+                <p>Here's your Reddit NLP analytics overview</p>
+            </div>
+            <div class="top-bar-right">
+                <div class="user-info">
+                    <div class="user-avatar">A</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <!-- Overview Section -->
+            <div id="overview" class="page-section active">
+                <div class="stats-grid" id="statsGrid">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading statistics...</p>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>Sentiment Distribution</h3>
+                        <canvas id="sentimentChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Emotion Analysis</h3>
+                        <canvas id="emotionChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Top Topics</h3>
+                        <canvas id="topicChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Content Flags</h3>
+                        <canvas id="flagsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Section -->
+            <div id="search" class="page-section">
+                <div class="search-container">
+                    <h2 style="margin-bottom: 20px; color: #1a1a1b;">🔍 Search & Analyze</h2>
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Search for keywords, hashtags, topics, or anything...">
+                        <select id="searchType">
+                            <option value="all">All</option>
+                            <option value="keyword">Keywords</option>
+                            <option value="hashtag">Hashtags</option>
+                            <option value="sentiment">Sentiment</option>
+                            <option value="emotion">Emotion</option>
+                            <option value="topic">Topic</option>
+                            <option value="spam">Spam Posts</option>
+                            <option value="offensive">Offensive Content</option>
+                        </select>
+                        <button onclick="performSearch()">Search</button>
+                    </div>
+
+                    <div class="quick-filters">
+                        <div class="filter-chip" onclick="quickSearch('positive', 'sentiment')">😊 Positive Posts</div>
+                        <div class="filter-chip" onclick="quickSearch('negative', 'sentiment')">😞 Negative Posts</div>
+                        <div class="filter-chip" onclick="quickSearch('joy', 'emotion')">😄 Joyful Posts</div>
+                        <div class="filter-chip" onclick="quickSearch('anger', 'emotion')">😠 Angry Posts</div>
+                        <div class="filter-chip" onclick="quickSearch('', 'spam')">🚫 Spam Posts</div>
+                    </div>
+                </div>
+
+                <div id="searchResults" class="search-results"></div>
+            </div>
+
+            <!-- History Section -->
+            <div id="history" class="page-section">
+                <h2 style="margin-bottom: 25px; color: #1a1a1b;">🕐 Recent Searches</h2>
+                <ul id="historyList" class="history-list">
+                    <div class="empty-state">
+                        <div class="icon">🔍</div>
+                        <p>No search history yet. Start searching to see your history here!</p>
+                    </div>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let charts = {};
+
+        // Show page
+        function showPage(page) {
+            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById(page).classList.add('active');
+            event.target.closest('.nav-item').classList.add('active');
+            
+            if (page === 'overview') {
+                loadOverview();
+            } else if (page === 'history') {
+                loadHistory();
+            }
+        }
+
+        // Load overview
+        async function loadOverview() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                
+                if (data.error) {
+                    document.getElementById('statsGrid').innerHTML = `<div class="empty-state"><p>${data.error}</p></div>`;
+                    return;
+                }
+                
+                displayStats(data);
+                createCharts(data);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('statsGrid').innerHTML = `<div class="empty-state"><p>Error loading data</p></div>`;
+            }
+        }
+
+        // Display stats
+        function displayStats(data) {
+            document.getElementById('statsGrid').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Total Posts</div>
+                    <div class="stat-value">${data.total_posts.toLocaleString()}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Spam Posts</div>
+                    <div class="stat-value">${data.spam_count.toLocaleString()}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Offensive Posts</div>
+                    <div class="stat-value">${data.offensive_count.toLocaleString()}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Analysis Status</div>
+                    <div class="stat-value">✓</div>
+                </div>
+            `;
+        }
+
+        // Create charts
+        function createCharts(data) {
+            const redColors = ['#FF4500', '#FF6A33', '#FF8C66', '#FFAE99'];
+            
+            // Sentiment
+            const sentimentCtx = document.getElementById('sentimentChart').getContext('2d');
+            if (charts.sentiment) charts.sentiment.destroy();
+            charts.sentiment = new Chart(sentimentCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(data.sentiment_distribution),
+                    datasets: [{
+                        data: Object.values(data.sentiment_distribution),
+                        backgroundColor: redColors
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // Emotion
+            const emotionCtx = document.getElementById('emotionChart').getContext('2d');
+            if (charts.emotion) charts.emotion.destroy();
+            charts.emotion = new Chart(emotionCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(data.emotion_distribution),
+                    datasets: [{
+                        label: 'Posts',
+                        data: Object.values(data.emotion_distribution),
+                        backgroundColor: '#FF4500'
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            // Topic
+            const topicCtx = document.getElementById('topicChart').getContext('2d');
+            if (charts.topic) charts.topic.destroy();
+            charts.topic = new Chart(topicCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(data.topic_distribution),
+                    datasets: [{
+                        label: 'Posts',
+                        data: Object.values(data.topic_distribution),
+                        backgroundColor: '#FF4500'
+                    }]
+                },
+                options: { responsive: true, indexAxis: 'y', plugins: { legend: { display: false } } }
+            });
+
+            // Flags
+            const flagsCtx = document.getElementById('flagsChart').getContext('2d');
+            if (charts.flags) charts.flags.destroy();
+            charts.flags = new Chart(flagsCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Spam', 'Offensive'],
+                    datasets: [{
+                        data: [data.spam_count, data.offensive_count],
+                        backgroundColor: ['#FF4500', '#E03D00']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        // Search
+        async function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            const type = document.getElementById('searchType').value;
+            
+            if (!query && type !== 'spam' && type !== 'offensive') {
+                alert('Please enter a search query');
+                return;
+            }
+            
+            const resultsDiv = document.getElementById('searchResults');
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Searching...</p></div>';
+            
+            try {
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: query || 'spam', type })
+                });
+                
+                const data = await response.json();
+                displayResults(data);
+            } catch (error) {
+                resultsDiv.innerHTML = '<div class="empty-state"><p>Error performing search</p></div>';
+            }
+        }
+
+        function quickSearch(query, type) {
+            document.getElementById('searchInput').value = query;
+            document.getElementById('searchType').value = type;
+            performSearch();
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('searchResults');
+            
+            if (data.total_results === 0) {
+                resultsDiv.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>No results found</p></div>`;
+                return;
+            }
+            
+            let html = `<div class="result-header"><strong>${data.total_results}</strong> results found for <strong>"${data.query}"</strong></div>`;
+            
+            data.results.forEach(post => {
+                html += `
+                    <div class="result-card">
+                        <div class="result-title">${post.title}</div>
+                        <div class="result-meta">
+                            <span>📍 r/${post.subreddit}</span>
+                            <span>👤 u/${post.author}</span>
+                            <span>⬆️ ${post.score}</span>
+                            <span>💬 ${post.num_comments}</span>
+                        </div>
+                        <div class="result-nlp">
+                            <div class="nlp-badge">
+                                <div class="label">Sentiment</div>
+                                <div class="value"><span class="badge ${post.sentiment.label.toLowerCase()}">${post.sentiment.label}</span> ${post.sentiment.confidence}%</div>
+                            </div>
+                            <div class="nlp-badge">
+                                <div class="label">Emotion</div>
+                                <div class="value">${post.emotion.label} (${post.emotion.confidence}%)</div>
+                            </div>
+                            <div class="nlp-badge">
+                                <div class="label">Topic</div>
+                                <div class="value">${post.topic}</div>
+                            </div>
+                            <div class="nlp-badge">
+                                <div class="label">Flags</div>
+                                <div class="value">
+                                    ${post.flags.spam ? '<span class="badge spam">Spam</span>' : ''}
+                                    ${post.flags.offensive ? '<span class="badge spam">Offensive</span>' : ''}
+                                    ${!post.flags.spam && !post.flags.offensive ? 'None' : ''}
+                                </div>
+                            </div>
+                        </div>
+                        ${post.keywords.length > 0 ? `
+                            <div class="keywords-list">
+                                ${post.keywords.map(kw => `<span class="keyword-tag">${kw}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+            
+            resultsDiv.innerHTML = html;
+        }
+
+        // History
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/history');
+                const data = await response.json();
+                
+                const historyList = document.getElementById('historyList');
+                
+                if (data.history.length === 0) {
+                    historyList.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>No search history yet</p></div>';
+                    return;
+                }
+                
+                let html = '';
+                data.history.forEach(item => {
+                    const date = new Date(item.timestamp);
+                    html += `
+                        <li class="history-item" onclick="replaySearch('${item.query}', '${item.type}')">
+                            <div class="history-query">${item.query || item.type}</div>
+                            <div class="history-meta">
+                                <span>Type: ${item.type}</span>
+                                <span>Results: ${item.result_count}</span>
+                                <span>${date.toLocaleString()}</span>
+                            </div>
+                        </li>
+                    `;
+                });
+                
+                historyList.innerHTML = html;
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function replaySearch(query, type) {
+            showPage('search');
+            document.getElementById('searchInput').value = query;
+            document.getElementById('searchType').value = type;
+            performSearch();
+        }
+
+        // Enter key
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') performSearch();
+            });
+            loadOverview();
+        });
+    </script>
+</body>
+</html>

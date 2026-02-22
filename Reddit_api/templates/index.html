@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RedditSense - Advanced NLP Analytics Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .hero-section {
+            position: relative;
+            height: 100vh;
+            background: linear-gradient(135deg, rgba(255, 69, 0, 0.9), rgba(255, 69, 0, 0.7)), 
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect fill="%23f5f5f5" width="1200" height="800"/><g fill-opacity="0.1"><polygon fill="%23FF4500" points="1200 0 0 0 0 800"/></g></svg>');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            padding: 40px;
+        }
+
+        .logo {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .logo .reddit {
+            color: #FF4500;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+
+        .logo .sense {
+            color: white;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation: fadeInUp 1s ease;
+        }
+
+        .hero-content p {
+            font-size: 1.3em;
+            margin-bottom: 40px;
+            line-height: 1.6;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            animation: fadeInUp 1.2s ease;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 18px 50px;
+            background: #00D26A;
+            color: white;
+            text-decoration: none;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 210, 106, 0.4);
+            animation: fadeInUp 1.4s ease;
+        }
+
+        .cta-button:hover {
+            background: #00B85C;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 210, 106, 0.6);
+        }
+
+        .features-section {
+            padding: 80px 20px;
+            background: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5em;
+            color: #FF4500;
+            margin-bottom: 20px;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 60px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border-top: 4px solid #FF4500;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 25px rgba(255, 69, 0, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .about-section {
+            padding: 80px 20px;
+            background: #f8f9fa;
+        }
+
+        .about-content {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .about-content h2 {
+            font-size: 2.5em;
+            color: #FF4500;
+            margin-bottom: 30px;
+        }
+
+        .about-content p {
+            font-size: 1.1em;
+            color: #555;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .stats-section {
+            padding: 60px 20px;
+            background: linear-gradient(135deg, #FF4500, #FF6A33);
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .stat-item h3 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .stat-item p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* About Reddit Section */
+        .reddit-section {
+            padding: 80px 20px;
+            background: white;
+        }
+
+        .reddit-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .reddit-content h2 {
+            font-size: 2.5em;
+            color: #FF4500;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .reddit-intro {
+            text-align: center;
+            font-size: 1.1em;
+            color: #555;
+            margin-bottom: 60px;
+            line-height: 1.8;
+        }
+
+        .reddit-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        .reddit-card {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border-top: 4px solid #FF4500;
+        }
+
+        .reddit-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 25px rgba(255, 69, 0, 0.2);
+        }
+
+        .reddit-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #FF4500, #FF6A33);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            margin: 0 auto 20px;
+            color: white;
+        }
+
+        .reddit-card h3 {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .reddit-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .reddit-flow {
+            background: #f8f9fa;
+            padding: 40px;
+            border-radius: 15px;
+            margin-top: 40px;
+        }
+
+        .reddit-flow h3 {
+            text-align: center;
+            font-size: 2em;
+            color: #FF4500;
+            margin-bottom: 40px;
+        }
+
+        .flow-steps {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .flow-step {
+            text-align: center;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .flow-number {
+            width: 60px;
+            height: 60px;
+            background: #FF4500;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 0 auto 15px;
+        }
+
+        .flow-arrow {
+            font-size: 2em;
+            color: #FF4500;
+            margin: 0 10px;
+        }
+
+        .flow-step p {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .reddit-stats-visual {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        .stat-visual {
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-visual .icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .stat-visual h4 {
+            font-size: 2em;
+            color: #FF4500;
+            margin-bottom: 10px;
+        }
+
+        .stat-visual p {
+            color: #666;
+        }
+
+        .footer {
+            background: #1a1a1b;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .footer p {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <section class="hero-section">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <div class="logo">
+                <span class="reddit">Reddit</span><span class="sense">Sense</span>
+            </div>
+            <h1>Advanced NLP Analytics Platform</h1>
+            <p>
+                Unlock deep insights from Reddit conversations with cutting-edge Natural Language Processing. 
+                Analyze sentiment, emotions, topics, entities, and behavioral patterns across millions of posts 
+                with our comprehensive AI-powered analytics dashboard.
+            </p>
+            <a href="/dashboard" class="cta-button">Go to Dashboard →</a>
+        </div>
+    </section>
+
+    <section class="features-section">
+        <div class="container">
+            <h2 class="section-title">Powerful Analytics Features</h2>
+            <p class="section-subtitle">Everything you need to understand Reddit conversations at scale</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">😊</div>
+                    <h3>Sentiment Analysis</h3>
+                    <p>Advanced AI models detect positive, negative, and neutral sentiments with high accuracy across all posts and comments.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎭</div>
+                    <h3>Emotion Detection</h3>
+                    <p>Identify 7 core emotions (joy, sadness, anger, fear, surprise, disgust, neutral) to understand the emotional landscape.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🏷️</div>
+                    <h3>Named Entity Recognition</h3>
+                    <p>Extract and link people, organizations, locations, and concepts with Wikipedia integration for context.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔑</div>
+                    <h3>Keywords & Hashtags</h3>
+                    <p>Automatically extract trending keywords and hashtags to identify popular topics and discussions.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📚</div>
+                    <h3>Topic Classification</h3>
+                    <p>Categorize posts into topics like technology, politics, gaming, science, and more using ML models.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🚩</div>
+                    <h3>Behavior Flags</h3>
+                    <p>Detect spam, offensive content, promotional posts, and other behavioral patterns automatically.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Smart Search</h3>
+                    <p>Search across all NLP results with advanced filtering by sentiment, emotion, topic, and more.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Visual Analytics</h3>
+                    <p>Interactive charts and graphs to visualize trends, distributions, and patterns in your data.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💾</div>
+                    <h3>Data Export</h3>
+                    <p>Export results to JSON and MongoDB for further analysis and integration with other tools.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="about-section">
+        <div class="about-content">
+            <h2>About RedditSense</h2>
+            <p>
+                <strong>RedditSense</strong> is a comprehensive Natural Language Processing (NLP) analytics platform 
+                designed specifically for Reddit data analysis. Built with state-of-the-art machine learning models 
+                and advanced text processing techniques, RedditSense transforms raw Reddit conversations into 
+                actionable insights.
+            </p>
+            <p>
+                Our platform processes millions of posts and comments, applying multiple NLP pipelines including 
+                sentiment analysis, emotion detection, named entity recognition, topic classification, and behavioral 
+                pattern detection. Whether you're a researcher, data scientist, marketer, or community manager, 
+                RedditSense provides the tools you need to understand online conversations at scale.
+            </p>
+            <p>
+                With an intuitive dashboard, powerful search capabilities, and comprehensive analytics, RedditSense 
+                makes it easy to discover trends, track sentiment shifts, identify key topics, and monitor community 
+                health across any subreddit or topic area.
+            </p>
+        </div>
+    </section>
+
+    <section class="stats-section">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <h3>125K+</h3>
+                <p>Posts Analyzed</p>
+            </div>
+            <div class="stat-item">
+                <h3>7</h3>
+                <p>NLP Pipelines</p>
+            </div>
+            <div class="stat-item">
+                <h3>100+</h3>
+                <p>Subreddits Covered</p>
+            </div>
+            <div class="stat-item">
+                <h3>99%</h3>
+                <p>Accuracy Rate</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="reddit-section">
+        <div class="reddit-content">
+            <h2>About Reddit</h2>
+            <p class="reddit-intro">
+                Reddit is the world's largest community-driven social platform where millions of users share, 
+                discuss, and vote on content across thousands of communities called "subreddits." 
+                Understanding how Reddit works is key to analyzing its rich conversational data.
+            </p>
+
+            <div class="reddit-grid">
+                <div class="reddit-card">
+                    <div class="reddit-icon">👥</div>
+                    <h3>Communities (Subreddits)</h3>
+                    <p>Reddit is organized into communities called subreddits (r/technology, r/science, etc.). Each subreddit focuses on a specific topic and has its own rules and culture.</p>
+                </div>
+
+                <div class="reddit-card">
+                    <div class="reddit-icon">📝</div>
+                    <h3>Posts & Comments</h3>
+                    <p>Users submit posts (text, links, images, videos) to subreddits. Other users can comment, creating threaded discussions that can go multiple levels deep.</p>
+                </div>
+
+                <div class="reddit-card">
+                    <div class="reddit-icon">⬆️</div>
+                    <h3>Voting System</h3>
+                    <p>Users upvote or downvote content. Popular posts rise to the top, while unpopular ones sink. This democratic system determines content visibility.</p>
+                </div>
+
+                <div class="reddit-card">
+                    <div class="reddit-icon">🏆</div>
+                    <h3>Karma Points</h3>
+                    <p>Users earn karma points when their posts and comments receive upvotes. Karma reflects a user's contribution to the community.</p>
+                </div>
+
+                <div class="reddit-card">
+                    <div class="reddit-icon">👤</div>
+                    <h3>Anonymity</h3>
+                    <p>Reddit allows pseudonymous participation. Users can create accounts without revealing their real identity, encouraging open and honest discussions.</p>
+                </div>
+
+                <div class="reddit-card">
+                    <div class="reddit-icon">🔥</div>
+                    <h3>Trending Content</h3>
+                    <p>Reddit's algorithm surfaces trending content based on votes, comments, and time. The "front page" shows the most popular posts across all subreddits.</p>
+                </div>
+            </div>
+
+            <div class="reddit-flow">
+                <h3>How Reddit Content Flows</h3>
+                <div class="flow-steps">
+                    <div class="flow-step">
+                        <div class="flow-number">1</div>
+                        <p>User Creates Post</p>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="flow-number">2</div>
+                        <p>Posted to Subreddit</p>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="flow-number">3</div>
+                        <p>Community Votes</p>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="flow-number">4</div>
+                        <p>Popular Posts Rise</p>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="flow-number">5</div>
+                        <p>Reaches Front Page</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reddit-stats-visual">
+                <div class="stat-visual">
+                    <div class="icon">🌍</div>
+                    <h4>430M+</h4>
+                    <p>Monthly Active Users</p>
+                </div>
+                <div class="stat-visual">
+                    <div class="icon">📱</div>
+                    <h4>100K+</h4>
+                    <p>Active Communities</p>
+                </div>
+                <div class="stat-visual">
+                    <div class="icon">💬</div>
+                    <h4>13B+</h4>
+                    <p>Posts & Comments</p>
+                </div>
+                <div class="stat-visual">
+                    <div class="icon">🗣️</div>
+                    <h4>50+</h4>
+                    <p>Languages Supported</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 RedditSense - Advanced NLP Analytics Platform. All rights reserved.</p>
+            <p style="margin-top: 10px; opacity: 0.6;">Powered by Transformers, spaCy, and MongoDB</p>
+        </div>
+    </footer>
+</body>
+</html>
